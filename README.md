@@ -134,6 +134,13 @@ happens inside the Nix derivation, surviving byte-for-byte when copied into
 `/Applications`. Subsequent builds share the same identifier and retain
 permissions.
 
+Every Mach-O under `Contents/MacOS` is signed under that same requirement, not
+just the bundle's main executable. A `makeBinaryWrapper` stub execs a hidden
+sibling (`.handy-wrapped`), and the kernel holds _that_ process, so a helper
+left with its own file-name identifier and `cdhash` requirement would lose the
+grant on every rebuild. Nested bundles (`.plugin`, `.framework`) keep the
+identifier of their own `Info.plist`.
+
 ### Vendor Signatures
 
 Bundles carrying an authentic Apple Developer ID signature are passed through
@@ -141,9 +148,19 @@ untouched; their requirement already names a stable Team ID.
 
 ### Path Rewriting & Deduplication
 
-- Wrapper scripts referencing the original store path are repointed to the new
-  output. Binaries outside the bundle pointing back to the old store path abort
-  the build, because they could execute into unsigned code.
+- References to the original store path are repointed to the new output: in
+  wrapper scripts and other text files, and in Mach-O binaries inside the
+  bundle, which the signer rebuilds afterwards. A Mach-O can only be rewritten
+  in place, so the stabilized output is given the source's own store name to
+  keep the two paths equal in length. Identify the result by `pname` rather
+  than by its store name; a bundle from `mkAppBundle` is named `<App>.app`.
+- Binaries outside the bundle pointing back to the old store path abort the
+  build, because they could execute into unsigned code and nothing re-signs
+  them after a rewrite. So do Mach-Os sitting where a signer seals without
+  signing (`Info.plist`, `PkgInfo`, `_MASReceipt`, `_CodeSignature`), where a
+  rewrite would leave a signature the bytes no longer match. Binary files that
+  are not Mach-O (archives, databases, compiled resources) are left as they
+  are.
 - Duplicate binaries in `bin/` matching `Contents/MacOS/` become relative links
   into the bundle, preventing them from carrying separate store-path identities.
 
@@ -170,10 +187,11 @@ Microphone  com.pais.handy  bundle id  allowed  identifier "com.pais.handy"
 
 ## Limitations
 
-- Bundles containing wrapper scripts in `Contents/MacOS` (e.g., Firefox),
+- Bundles containing shell wrapper scripts in `Contents/MacOS` (e.g., Firefox),
   unpacked extended attributes as files (`:com.apple.provenance`), or
-  restricted entitlements cannot be sealed. Pass `allowUnsupported = true` to
-  bypass unsupported bundles with a warning where possible.
+  restricted entitlements cannot be sealed; a `makeBinaryWrapper` stub is a
+  Mach-O and is supported. Pass `allowUnsupported = true` to bypass unsupported
+  bundles with a warning where possible.
 - Ad-hoc requirements matching `identifier "<id>"` are verified by bundle
   identifier rather than a cryptographic key; any local process claiming that
   identifier satisfies the requirement.
