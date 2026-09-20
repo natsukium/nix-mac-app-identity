@@ -15,7 +15,17 @@
     {
       overlays.default = final: _: import ./. { pkgs = final; };
 
-      checks = forAllSystems (pkgs: pkgs.callPackages ./tests (import ./. { inherit pkgs; }));
+      checks = forAllSystems (
+        pkgs:
+        let
+          appIdentity = import ./. { inherit pkgs; };
+        in
+        pkgs.callPackages ./tests appIdentity
+        // pkgs.callPackages ./tests/modules.nix {
+          inherit (appIdentity) stabilizeApp;
+          pkgsLinux = nixpkgs.legacyPackages.x86_64-linux;
+        }
+      );
 
       # Diagnostics, reachable without a checkout. Kept out of the overlay and out
       # of packages so they never land in anyone's profile.

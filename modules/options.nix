@@ -9,9 +9,9 @@ path:
 
 let
   cfg = lib.getAttrFromPath path config;
-  # Called here rather than taken from pkgs so that the module works without the
-  # overlay applied.
-  stabilizeApp = pkgs.callPackage ../pkgs/stabilize-app.nix { };
+  # Imported here rather than taken from pkgs so that the module works without
+  # the overlay applied.
+  appIdentity = import ../default.nix { inherit pkgs; };
 in
 {
   options = lib.setAttrByPath path {
@@ -29,6 +29,10 @@ in
         List them here *instead of* in the usual package list: a second copy of
         the same application would give macOS two bundles with one identifier to
         choose between.
+
+        The same helpers are available as `config.lib.appIdentity.stabilizeApp`
+        and `config.lib.appIdentity.mkAppBundle`, for a module that owns a
+        package option or a launchd agent rather than a package list.
       '';
     };
 
@@ -36,7 +40,9 @@ in
       type = lib.types.listOf lib.types.package;
       internal = true;
       readOnly = true;
-      default = map stabilizeApp cfg.apps;
+      default = map appIdentity.stabilizeApp cfg.apps;
     };
   };
+
+  config.lib.appIdentity = appIdentity;
 }

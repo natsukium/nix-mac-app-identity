@@ -66,6 +66,32 @@ List packages here _instead of_ in `home.packages` or
 `environment.systemPackages` to avoid installing duplicate bundles with the
 same identifier.
 
+#### From another module
+
+Once the module is imported, `config.lib.appIdentity` exposes the same helpers
+to other modules in the configuration. Called with the same package set, it
+builds the same derivation as the `pkgs.callPackage` route above:
+
+```nix
+{ config, pkgs, lib, ... }:
+let
+  skhdApp = config.lib.appIdentity.mkAppBundle {
+    package = pkgs.skhd;
+    identifier = "com.koekeishiya.skhd";
+  };
+in
+{
+  programs.kitty.package = config.lib.appIdentity.stabilizeApp pkgs.kitty;
+
+  launchd.agents.skhd.config.ProgramArguments = [ (lib.getExe skhdApp) ];
+}
+```
+
+- Available whenever the module is imported, even with an empty `apps`.
+- Not usable inside `imports`.
+- A submodule receives its own `config`, so a parent passes the helper or the result in.
+- On Linux the attribute exists, but applying a helper is unsupported and may fail at evaluation or build.
+
 #### Standalone
 
 Without the module, stabilize a package by hand:

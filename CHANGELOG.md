@@ -6,6 +6,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+### Added
+
+- **`config.lib.appIdentity`**: the home-manager and nix-darwin modules now expose `stabilizeApp` and `mkAppBundle` as `config.lib.appIdentity`, so a module that owns a package option (e.g. `programs.kitty.package`) or a launchd agent can stabilize without calling `pkgs.callPackage inputs.nix-mac-app-identity { }` itself. Both routes build the same derivation.
+
 ### Fixed
 
 - **Wrapped executables (`makeBinaryWrapper`)**: applications wrapped with `makeBinaryWrapper` (such as `pkgs.flameshot` and `pkgs.kitty`) now retain their TCC permissions across rebuilds. Previously, `Contents/MacOS/<app>` was an entrypoint stub that executed an inner `.app-wrapped` binary pointing to the original Nix store path, leaving the actual running executable unsigned and tied to a volatile store path. All Mach-O binaries under `Contents/MacOS` are now signed with the bundle's designated requirement (`identifier "<bundle-id>"`). ([598399b](https://git.natsukium.com/natsukium/nix-mac-app-identity/commit/598399b6f0a70846dbf5ad0e0ef4701819019f79))
