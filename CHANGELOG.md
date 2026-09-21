@@ -6,9 +6,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
 
 ## [Unreleased]
 
+## [2026.09.22]
+
 ### Added
 
-- **`config.lib.appIdentity`**: the home-manager and nix-darwin modules now expose `stabilizeApp` and `mkAppBundle` as `config.lib.appIdentity`, so a module that owns a package option (e.g. `programs.kitty.package`) or a launchd agent can stabilize without calling `pkgs.callPackage inputs.nix-mac-app-identity { }` itself. Both routes build the same derivation.
+- **`config.lib.appIdentity`**: the home-manager and nix-darwin modules now expose `stabilizeApp` and `mkAppBundle` as `config.lib.appIdentity`, so a module that owns a package option (e.g. `programs.kitty.package`) or a launchd agent can stabilize without calling `pkgs.callPackage inputs.nix-mac-app-identity { }` itself. Both routes build the same derivation. ([b06b60b](https://git.natsukium.com/natsukium/nix-mac-app-identity/commit/b06b60b4877d188290841d81fb369a3c236ceacf))
 
 ### Fixed
 
@@ -36,5 +38,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Ver
   - `tcc-watch`: live monitor that streams TCC decision events from the macOS unified log (`com.apple.TCC`) without requiring Full Disk Access.
   - `tcc-dump`: inspection tool to dump stored TCC grants and decode raw code requirement blobs into text (requires Full Disk Access).
 
-[unreleased]: https://git.natsukium.com/natsukium/nix-mac-app-identity/compare/2026.09.19...HEAD
+[unreleased]: https://git.natsukium.com/natsukium/nix-mac-app-identity/compare/2026.09.22...HEAD
+[2026.09.22]: https://git.natsukium.com/natsukium/nix-mac-app-identity/compare/2026.09.19...2026.09.22
 [2026.09.19]: https://git.natsukium.com/natsukium/nix-mac-app-identity/releases/tag/2026.09.19
